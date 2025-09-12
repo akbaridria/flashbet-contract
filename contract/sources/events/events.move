@@ -11,19 +11,6 @@ module flashbet::events {
         expiry_time: u64,
     }
 
-    #[event]
-    struct BetResolvedEvent has drop, store {
-        bet_id: u64,
-        resolver: address,
-        won: bool,
-        payout: u64,
-    }
-
-    #[event]
-    struct BetCancelledEvent has drop, store {
-        bet_id: u64,
-    }
-
     public fun emit_placed_bet_event(bet_id: u64, user: address, amount: u64, expiry_time: u64) {
         event::emit(PlacedBetEvent {
             bet_id,
@@ -31,6 +18,14 @@ module flashbet::events {
             amount,
             expiry_time,
         });
+    }
+
+    #[event]
+    struct BetResolvedEvent has drop, store {
+        bet_id: u64,
+        resolver: address,
+        won: bool,
+        payout: u64,
     }
 
     public fun emit_bet_resolved_event(bet_id: u64, resolver: address, won: bool, payout: u64) {
@@ -42,39 +37,35 @@ module flashbet::events {
         });
     }
 
+    #[event]
+    struct BetCancelledEvent has drop, store {
+        bet_id: u64,
+    }
+
+
     public fun emit_bet_cancelled_event(bet_id: u64) {
         event::emit(BetCancelledEvent { bet_id });
     }
 
     // LIQUIDITY EVENTS
-#[event]
+    #[event]
     struct LiquidityAdded has drop, store {
         provider: address,
         amount: u64,
-        new_stake: u64,
     }
     
+    public fun emit_liquidity_added_event(provider: address, amount: u64) {
+        event::emit(LiquidityAdded {
+            provider,
+            amount,
+        });
+    }
+
     #[event]
     struct LiquidityRemoved has drop, store {
         provider: address,
         amount: u64,
         remaining_stake: u64,
-    }
-    
-    #[event]
-    struct RewardsDistributed has drop, store {
-        pnl_positive: u128,
-        pnl_negative: u128,
-        acc_reward_per_share_positive: u128,
-        acc_reward_per_share_negative: u128,
-    }
-
-    public fun emit_liquidity_added_event(provider: address, amount: u64, new_stake: u64) {
-        event::emit(LiquidityAdded {
-            provider,
-            amount,
-            new_stake,
-        });
     }
 
     public fun emit_liquidity_removed_event(provider: address, amount: u64, remaining_stake: u64) {
@@ -84,6 +75,14 @@ module flashbet::events {
             remaining_stake,
         });
     }
+    
+    #[event]
+    struct RewardsDistributed has drop, store {
+        pnl_positive: u128,
+        pnl_negative: u128,
+        acc_reward_per_share_positive: u128,
+        acc_reward_per_share_negative: u128,
+    }  
 
     public fun emit_rewards_distributed_event(
         pnl_positive: u128,

@@ -1,0 +1,1 @@
+module flashbet::liquidity_manager {}

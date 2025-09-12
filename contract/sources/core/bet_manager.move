@@ -7,12 +7,30 @@ module flashbet::bet_manager {
     use aptos_framework::table;
 
     use flashbet::events;
-    use flashbet::types;
     use flashbet::errors::get_error_code;
+
+    enum Status has drop, copy, store {
+        Pending,
+        Resolved,
+        Cancelled
+    }
+
+    struct Bet has key, drop, copy, store {
+        id: u64,
+        user: address,
+        amount: u64,
+        entry_price: u64,
+        entry_time: u64,
+        expiry_time: u64,
+        is_long: bool,
+        won: bool,
+        resolver: address,
+        status: Status,
+    }
 
     struct BetManager has key {
         next_bet_id: u64,
-        bets: table::Table<u64, types::Bet>,
+        bets: table::Table<u64, Bet>,
         user_bets: table::Table<address, vector<u64>>,
     }
 
@@ -25,6 +43,28 @@ module flashbet::bet_manager {
             bets: table::new(),
             user_bets: table::new(),
         });
+    }
+
+    fun new_bet(
+        id: u64,
+        user: address,
+        amount: u64,
+        entry_price: u64,
+        duration: u64,
+        is_long: bool
+    ): Bet {
+        Bet {
+            id,
+            user,
+            amount,
+            entry_price,
+            entry_time: timestamp::now_seconds(),
+            expiry_time: timestamp::now_seconds() + duration,
+            is_long,
+            won: false,
+            resolver: @0x0,
+            status: Status::Pending,
+        }
     }
 
     public(friend) fun place_bet(
@@ -40,7 +80,7 @@ module flashbet::bet_manager {
 
          bet_manager.bets.add(
             bet_id,
-            types::new_bet(
+            new_bet(
                 bet_id,
                 user,
                 amount,
@@ -67,32 +107,32 @@ module flashbet::bet_manager {
         let bet_manager = borrow_global_mut<BetManager>(@flashbet);
         let bet_ref = bet_manager.bets.borrow_mut(bet_id);
 
-        assert!(!types::is_resolved(bet_ref), get_error_code(2));
-        let (_,_,b_amount,b_entry_price,_,b_expiry_time,b_is_long,_,_,_) = types::get_bet_detail(bet_ref);
-        assert!(timestamp::now_seconds() >= b_expiry_time, get_error_code(3));
-        
-        if (timestamp::now_seconds() >= b_expiry_time + 60) {
+        assert!(bet_ref.status == Status::Resolved, get_error_code(2));
+
+        assert!(timestamp::now_seconds() >= bet_ref.expiry_time, get_error_code(3));
+
+        if (timestamp::now_seconds() >= bet_ref.expiry_time + 60) {
             // early return if bet expired more than 60 seconds ago
             return (false, 0, true);
         };
 
         let won;
-        if (b_is_long) {
-            won = exit_price > b_entry_price;
+        if (bet_ref.is_long) {
+            won = exit_price > bet_ref.entry_price;
         } else {
-            won = exit_price < b_entry_price;
+            won = exit_price < bet_ref.entry_price;
         };
 
         let payout;
         if (won) {
-            payout = (b_amount * PAYOUT_MULTIPLIER) / BASIS_POINTS;
+            payout = (bet_ref.amount * PAYOUT_MULTIPLIER) / BASIS_POINTS;
         } else {
             payout = 0;
         };
 
-        types::set_bet_status(bet_ref, 1);
-        types::set_bet_won(bet_ref, won);
-        types::set_bet_resolver(bet_ref, resolver);
+        bet_ref.status = Status::Resolved;
+        bet_ref.won = won;
+        bet_ref.resolver = resolver;
 
         events::emit_bet_resolved_event(bet_id, resolver, won, payout);
 
@@ -104,14 +144,15 @@ module flashbet::bet_manager {
         let bet_manager = borrow_global_mut<BetManager>(@flashbet);
         let bet_ref = bet_manager.bets.borrow_mut(bet_id);
 
-        assert!(types::is_pending(bet_ref), get_error_code(4));
+        assert!(bet_ref.status == Status::Pending, get_error_code(4));
 
-        types::set_bet_status(bet_ref, 2);
+        bet_ref.status = Status::Cancelled;
 
         events::emit_bet_cancelled_event(bet_id);
     }
 
-    public(friend) fun get_bet(bet_id: u64): option::Option<types::Bet> acquires BetManager {
+    #[view]
+    public(friend) fun get_bet(bet_id: u64): option::Option<Bet> acquires BetManager {
         let bet_manager = borrow_global<BetManager>(@flashbet);
         if (bet_manager.bets.contains(bet_id)) {
             option::some(*bet_manager.bets.borrow(bet_id))
@@ -120,14 +161,15 @@ module flashbet::bet_manager {
         }
     }
 
+    #[view]
     public(friend) fun can_resolve_bet(bet_id: u64): bool acquires BetManager {
         let bet_manager = borrow_global<BetManager>(@flashbet);
         if (!bet_manager.bets.contains(bet_id)) return false;
         let bet = bet_manager.bets.borrow(bet_id);
-        let (_,b_user,_,_,_,b_expiry_time,_,_,_,_) = types::get_bet_detail(bet);
-        types::is_pending(bet) && timestamp::now_seconds() >= b_expiry_time && b_user != @0x0
+        bet.status == Status::Pending && timestamp::now_seconds() >= bet.expiry_time && bet.user != @0x0
     }
 
+    #[view]
     public(friend) fun get_user_bets(user: address): option::Option<vector<u64>> acquires BetManager {
         let bet_manager = borrow_global<BetManager>(@flashbet);
         if (bet_manager.user_bets.contains(user)) {
