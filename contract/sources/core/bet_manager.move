@@ -62,7 +62,7 @@ module flashbet::bet_manager {
         bet_id: u64,
         exit_price: u64,
         resolver: address,
-    ): (bool, u64) acquires BetManager {
+    ): (bool, u64, bool) acquires BetManager {
 
         let bet_manager = borrow_global_mut<BetManager>(@flashbet);
         let bet_ref = bet_manager.bets.borrow_mut(bet_id);
@@ -70,6 +70,11 @@ module flashbet::bet_manager {
         assert!(!types::is_resolved(bet_ref), get_error_code(2));
         let (_,_,b_amount,b_entry_price,_,b_expiry_time,b_is_long,_,_,_) = types::get_bet_detail(bet_ref);
         assert!(timestamp::now_seconds() >= b_expiry_time, get_error_code(3));
+        
+        if (timestamp::now_seconds() >= b_expiry_time + 60) {
+            // early return if bet expired more than 60 seconds ago
+            return (false, 0, true);
+        };
 
         let won;
         if (b_is_long) {
@@ -91,7 +96,7 @@ module flashbet::bet_manager {
 
         events::emit_bet_resolved_event(bet_id, resolver, won, payout);
 
-        (won, payout)
+        (won, payout, false)
     }
 
     public(friend) fun cancel_bet(bet_id: u64) acquires BetManager {

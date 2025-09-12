@@ -1,6 +1,8 @@
 module flashbet::events {
     use aptos_framework::event;
 
+    // BET EVENTS
+
     #[event]
     struct PlacedBetEvent has drop, store {
         bet_id: u64,
@@ -20,18 +22,6 @@ module flashbet::events {
     #[event]
     struct BetCancelledEvent has drop, store {
         bet_id: u64,
-    }
-
-    #[event]
-    struct LiquidityAddedEvent has drop, store {
-        provider: address,
-        amount: u64,
-    }
-
-    #[event]
-    struct LiquidityRemovedEvent has drop, store {
-        provider: address,
-        amount: u64,
     }
 
     public fun emit_placed_bet_event(bet_id: u64, user: address, amount: u64, expiry_time: u64) {
@@ -55,4 +45,58 @@ module flashbet::events {
     public fun emit_bet_cancelled_event(bet_id: u64) {
         event::emit(BetCancelledEvent { bet_id });
     }
+
+    // LIQUIDITY EVENTS
+#[event]
+    struct LiquidityAdded has drop, store {
+        provider: address,
+        amount: u64,
+        new_stake: u64,
+    }
+    
+    #[event]
+    struct LiquidityRemoved has drop, store {
+        provider: address,
+        amount: u64,
+        remaining_stake: u64,
+    }
+    
+    #[event]
+    struct RewardsDistributed has drop, store {
+        pnl_positive: u128,
+        pnl_negative: u128,
+        acc_reward_per_share_positive: u128,
+        acc_reward_per_share_negative: u128,
+    }
+
+    public fun emit_liquidity_added_event(provider: address, amount: u64, new_stake: u64) {
+        event::emit(LiquidityAdded {
+            provider,
+            amount,
+            new_stake,
+        });
+    }
+
+    public fun emit_liquidity_removed_event(provider: address, amount: u64, remaining_stake: u64) {
+        event::emit(LiquidityRemoved {
+            provider,
+            amount,
+            remaining_stake,
+        });
+    }
+
+    public fun emit_rewards_distributed_event(
+        pnl_positive: u128,
+        pnl_negative: u128,
+        acc_reward_per_share_positive: u128,
+        acc_reward_per_share_negative: u128,
+    ) {
+        event::emit(RewardsDistributed {
+            pnl_positive,
+            pnl_negative,
+            acc_reward_per_share_positive,
+            acc_reward_per_share_negative,
+        });
+    }
+    
 }
