@@ -1,5 +1,5 @@
 [package]
-name = "MessageBoard"
+name = "Flashbet"
 version = "1.0.0"
 authors = []
 
@@ -7,3 +7,12 @@ authors = []
 AptosFramework = { git = "https://github.com/aptos-labs/aptos-framework.git", rev = "mainnet", subdir = "aptos-framework" }
 
 [dev-dependencies]
+
+[addresses]
+flashbet = "0x1"
+# Uncomment for Testnet/Mainnet
+# Pyth = { git = "https://github.com/pyth-network/pyth-crosschain.git", subdir = "target_chains/aptos/contracts", rev = "main" }
+
+# pyth = "0x577daa39b36ab442567a66c261572512131300b44957e5842256168a7136d1a3"
+# deployer = "0x77782cc44d82a12fb78e6d0c5a78671d341167453d59926e5771a0f97b59667e"
+# wormhole = "0x57641048696d3a4eafb97d495c3ea5891a0a77e51a693955084c55497de915ae"
