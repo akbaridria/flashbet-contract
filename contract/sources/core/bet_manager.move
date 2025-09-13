@@ -1,10 +1,8 @@
 module flashbet::bet_manager {
-    friend flashbet::flashbet_core;
-
     use aptos_framework::timestamp;
-    use aptos_framework::option;
     use aptos_framework::vector;
     use aptos_framework::table;
+    use aptos_framework::option;
 
     use flashbet::events;
     use flashbet::errors::get_error_code;
@@ -19,7 +17,7 @@ module flashbet::bet_manager {
         id: u64,
         user: address,
         amount: u64,
-        entry_price: u64,
+        entry_price: u128,
         entry_time: u64,
         expiry_time: u64,
         is_long: bool,
@@ -37,7 +35,7 @@ module flashbet::bet_manager {
     const PAYOUT_MULTIPLIER: u64 = 17_500;
     const BASIS_POINTS: u64 = 10_000;
 
-    public(friend) fun init_bet_manager(account: &signer) {
+    public(package) fun init_bet_manager(account: &signer) {
         move_to(account, BetManager {
             next_bet_id: 1,
             bets: table::new(),
@@ -49,7 +47,7 @@ module flashbet::bet_manager {
         id: u64,
         user: address,
         amount: u64,
-        entry_price: u64,
+        entry_price: u128,
         duration: u64,
         is_long: bool
     ): Bet {
@@ -67,12 +65,12 @@ module flashbet::bet_manager {
         }
     }
 
-    public(friend) fun place_bet(
+    public(package) fun place_bet(
         user: address,
         amount: u64,
         duration: u64,
         is_long: bool,
-        entry_price: u64,
+        entry_price: u128,
     ): u64 acquires BetManager {
         let bet_manager = borrow_global_mut<BetManager>(@flashbet);
         let bet_id = bet_manager.next_bet_id;
@@ -91,6 +89,7 @@ module flashbet::bet_manager {
         );
 
         let user_bets = bet_manager.user_bets.borrow_mut_with_default(user, vector::empty<u64>());
+        
         user_bets.push_back(bet_id);
 
         events::emit_placed_bet_event(bet_id, user, amount, timestamp::now_seconds() + duration);
@@ -98,9 +97,9 @@ module flashbet::bet_manager {
         bet_id
     }
 
-    public(friend) fun resolve_bet(
+    public(package) fun resolve_bet(
         bet_id: u64,
-        exit_price: u64,
+        exit_price: u128,
         resolver: address,
     ): (bool, u64, bool) acquires BetManager {
 
@@ -139,7 +138,7 @@ module flashbet::bet_manager {
         (won, payout, false)
     }
 
-    public(friend) fun cancel_bet(bet_id: u64) acquires BetManager {
+    public(package) fun cancel_bet(bet_id: u64) acquires BetManager {
 
         let bet_manager = borrow_global_mut<BetManager>(@flashbet);
         let bet_ref = bet_manager.bets.borrow_mut(bet_id);
@@ -152,7 +151,7 @@ module flashbet::bet_manager {
     }
 
     #[view]
-    public(friend) fun get_bet(bet_id: u64): option::Option<Bet> acquires BetManager {
+    public(package) fun get_bet(bet_id: u64): option::Option<Bet> acquires BetManager {
         let bet_manager = borrow_global<BetManager>(@flashbet);
         if (bet_manager.bets.contains(bet_id)) {
             option::some(*bet_manager.bets.borrow(bet_id))
@@ -162,7 +161,7 @@ module flashbet::bet_manager {
     }
 
     #[view]
-    public(friend) fun can_resolve_bet(bet_id: u64): bool acquires BetManager {
+    public(package) fun can_resolve_bet(bet_id: u64): bool acquires BetManager {
         let bet_manager = borrow_global<BetManager>(@flashbet);
         if (!bet_manager.bets.contains(bet_id)) return false;
         let bet = bet_manager.bets.borrow(bet_id);
@@ -170,7 +169,7 @@ module flashbet::bet_manager {
     }
 
     #[view]
-    public(friend) fun get_user_bets(user: address): option::Option<vector<u64>> acquires BetManager {
+    public(package) fun get_user_bets(user: address): option::Option<vector<u64>> acquires BetManager {
         let bet_manager = borrow_global<BetManager>(@flashbet);
         if (bet_manager.user_bets.contains(user)) {
             option::some(*bet_manager.user_bets.borrow(user))

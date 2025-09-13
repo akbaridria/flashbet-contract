@@ -1,6 +1,4 @@
 module flashbet::reward_distributor {
-    friend flashbet::liquidity_manager;
-
     use aptos_framework::table::{ Self, Table};
     use aptos_framework::timestamp;
 
@@ -37,7 +35,7 @@ module flashbet::reward_distributor {
         pool: PoolInfo,
     }
 
-    public(friend) fun initialize(account: &signer) {
+    public(package) fun initialize(account: &signer) {
         let pool_info = PoolInfo {
             total_staked: 0,
             acc_reward_per_share_positive: 0,
@@ -61,7 +59,7 @@ module flashbet::reward_distributor {
         pool.last_reward_time = current_time;
     }
 
-    public(friend) fun add_stake(provider: address, amount: u64) acquires DistributionPool {
+    public(package) fun add_stake(provider: address, amount: u64) acquires DistributionPool {
         let pool_ref = borrow_global_mut<DistributionPool>(@flashbet);
         update_pool(&mut pool_ref.pool);
         
@@ -223,7 +221,7 @@ module flashbet::reward_distributor {
         amount
     }
 
-    public(friend) fun distribute_pnl(pnl_positive: u128, pnl_negative: u128) acquires DistributionPool {
+    public(package) fun distribute_pnl(pnl_positive: u128, pnl_negative: u128) acquires DistributionPool {
         let pool_ref = borrow_global_mut<DistributionPool>(@flashbet);
 
         if (pool_ref.pool.total_staked == 0) return;

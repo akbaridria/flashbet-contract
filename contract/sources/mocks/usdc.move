@@ -15,9 +15,8 @@ module flashbet::usdc {
         aptos_framework::managed_coin::mint<USDC>(owner, signer::address_of(owner), amount);
     }
 
-    // public function for faucet in test environment
-    public fun mint(user: &signer) {
-        let amount = 100_000_000; // 100 USDC
+    public(package) fun mint(user: &signer) {
+        let amount = 100_000_000;
         aptos_framework::managed_coin::mint<USDC>(user, signer::address_of(user), amount);
     }
 }
