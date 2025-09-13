@@ -3,7 +3,6 @@ module flashbet::reward_distributor {
 
     use aptos_framework::table::{ Self, Table};
     use aptos_framework::timestamp;
-    use aptos_framework::signer;
 
     use flashbet::events;
     use flashbet::errors::get_error_code;
@@ -16,8 +15,15 @@ module flashbet::reward_distributor {
         reward_debt_negative: u128,
         last_update_time: u64,
     }
+
+    struct ProviderBalance has drop {
+        stake: u64,
+        pending_rewards_positive: u128,
+        pending_rewards_negative: u128,
+        effective_balance: u64,
+    }
     
-    struct PoolInfo has store {
+    struct PoolInfo has store, copy {
         total_staked: u64,
         acc_reward_per_share_positive: u128,
         acc_reward_per_share_negative: u128,
@@ -55,8 +61,8 @@ module flashbet::reward_distributor {
         pool.last_reward_time = current_time;
     }
 
-    public(friend) fun add_stake(account: &signer,provider: address, amount: u64) acquires DistributionPool {
-        let pool_ref = borrow_global_mut<DistributionPool>(signer::address_of(account));
+    public(friend) fun add_stake(provider: address, amount: u64) acquires DistributionPool {
+        let pool_ref = borrow_global_mut<DistributionPool>(@flashbet);
         update_pool(&mut pool_ref.pool);
         
         if (!pool_ref.providers.contains(provider)) {
@@ -128,8 +134,8 @@ module flashbet::reward_distributor {
         }
     }
 
-    public fun remove_stake(account: &signer, provider: address, amount: u64): u64 acquires DistributionPool {
-        let pool_ref = borrow_global_mut<DistributionPool>(signer::address_of(account));
+    public fun remove_stake(provider: address, amount: u64): u64 acquires DistributionPool {
+        let pool_ref = borrow_global_mut<DistributionPool>(@flashbet);
         update_pool(&mut pool_ref.pool);
         
         assert!(pool_ref.providers.contains(provider), get_error_code(5));
@@ -217,8 +223,8 @@ module flashbet::reward_distributor {
         amount
     }
 
-    public(friend) fun distribute_pnl(account: &signer, pnl_positive: u128, pnl_negative: u128) acquires DistributionPool {
-        let pool_ref = borrow_global_mut<DistributionPool>(signer::address_of(account));
+    public(friend) fun distribute_pnl(pnl_positive: u128, pnl_negative: u128) acquires DistributionPool {
+        let pool_ref = borrow_global_mut<DistributionPool>(@flashbet);
 
         if (pool_ref.pool.total_staked == 0) return;
         
@@ -246,30 +252,33 @@ module flashbet::reward_distributor {
     }
 
     #[view]
-    public fun get_provider_info(pool_address: address, provider: address): (u64, u128, u128, u64) acquires DistributionPool {
-        let pool_ref = borrow_global<DistributionPool>(pool_address);
+    public fun get_provider_info(provider: address): ProviderBalance acquires DistributionPool {
+        let pool_ref = borrow_global<DistributionPool>(@flashbet);
         
         if (!pool_ref.providers.contains(provider)) {
-            return (0, 0, 0, 0)
+            return ProviderBalance {
+                stake: 0,
+                pending_rewards_positive: 0,
+                pending_rewards_negative: 0,
+                effective_balance: 0
+            };
         };
         
         let provider_info = pool_ref.providers.borrow(provider);
         let (pending_positive, pending_negative) = get_pending_rewards_internal(pool_ref, provider);
         let effective_balance = get_effective_balance_internal(pool_ref, provider);
-        
-        (provider_info.stake, pending_positive, pending_negative, effective_balance)
+
+        ProviderBalance {
+            stake: provider_info.stake,
+            pending_rewards_positive: pending_positive,
+            pending_rewards_negative: pending_negative,
+            effective_balance
+        }
     }
     
     #[view]
-    public fun get_pool_info(pool_address: address): (u64, u128, u128, u128, u128) acquires DistributionPool {
-        let pool_ref = borrow_global<DistributionPool>(pool_address);
-        
-        (
-            pool_ref.pool.total_staked,
-            pool_ref.pool.acc_reward_per_share_positive,
-            pool_ref.pool.acc_reward_per_share_negative,
-            pool_ref.pool.total_pnl_positive,
-            pool_ref.pool.total_pnl_negative
-        )
+    public fun get_pool_info(): PoolInfo acquires DistributionPool {
+        let pool_ref = borrow_global<DistributionPool>(@flashbet);
+        pool_ref.pool
     }
 }

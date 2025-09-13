@@ -7,9 +7,13 @@ authors = []
 AptosFramework = { git = "https://github.com/aptos-labs/aptos-framework.git", rev = "mainnet", subdir = "aptos-framework" }
 
 [dev-dependencies]
+# flashbet = "0x63885cb809d48f2e40b82805b77720cc8ec0f79d0ddb0fc435bc40663378dc34"
+
+[dev-addresses]
+flashbet = "0x63885cb809d48f2e40b82805b77720cc8ec0f79d0ddb0fc435bc40663378dc34"
 
 [addresses]
-flashbet = "0x1"
+flashbet = "_"
 # Uncomment for Testnet/Mainnet
 # Pyth = { git = "https://github.com/pyth-network/pyth-crosschain.git", subdir = "target_chains/aptos/contracts", rev = "main" }
 

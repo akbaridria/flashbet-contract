@@ -6,6 +6,7 @@ module flashbet::errors {
     const E_PROVIDER_NOT_FOUND: u64 = 5;
     const E_INSUFFICIENT_EFFECTIVE_BALANCE: u64 = 6;
     const E_INSUFFICIENT_STAKE: u64 = 7;
+    const E_INSUFFICIENT_AVAILABLE_LIQUIDITY: u64 = 8;
 
     public fun get_error_code(bet_type: u8): u64 {
         if (bet_type == 1) {
@@ -22,6 +23,8 @@ module flashbet::errors {
             E_INSUFFICIENT_EFFECTIVE_BALANCE
         } else if (bet_type == 7) {
             E_INSUFFICIENT_STAKE
+        } else if(bet_type == 8) {
+            E_INSUFFICIENT_AVAILABLE_LIQUIDITY
         } else {
             bet_type as u64
         }
