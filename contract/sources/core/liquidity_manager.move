@@ -73,6 +73,12 @@ module flashbet::liquidity_manager {
     }
 
     #[view]
+    public(package) fun get_available_liquidity(): u64 acquires LiquidityPool {
+        let pool = borrow_global<LiquidityPool>(@flashbet);
+        pool.total_liquidity - pool.locked_liquidity
+    }
+
+    #[view]
     public(package) fun get_provider_liquidity(provider: address): option::Option<ProviderBalance> {
         let info = reward_distributor::get_provider_info(provider);
         option::some(info)

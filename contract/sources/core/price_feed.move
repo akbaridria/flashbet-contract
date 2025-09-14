@@ -16,7 +16,7 @@ module flashbet::price_feed {
         });
     }
  
-    public(package) fun get_price(user: &signer, pyth_price_update: vector<vector<u8>>): u64 {
+    public(package) fun get_price(user: &signer, pyth_price_update: vector<vector<u8>>): u64 acquires PriceFeed {
         let price_feed = borrow_global<PriceFeed>(@flashbet);
         let coins = coin::withdraw(user, pyth::get_update_fee(&pyth_price_update));
         pyth::update_price_feeds(pyth_price_update, coins);
