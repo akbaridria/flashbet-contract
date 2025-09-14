@@ -63,17 +63,17 @@ module flashbet::reward_distributor {
         let pool_ref = borrow_global_mut<DistributionPool>(@flashbet);
         update_pool(&mut pool_ref.pool);
         
-        if (!pool_ref.providers.contains(provider)) {
+        if (!table::contains(&pool_ref.providers, provider)) {
             let new_provider = ProviderInfo {
                 stake: 0,
                 reward_debt_positive: 0,
                 reward_debt_negative: 0,
                 last_update_time: timestamp::now_seconds(),
             };
-            pool_ref.providers.add(provider, new_provider);
+            table::add(&mut pool_ref.providers, provider, new_provider);
         };
         
-        let provider_info = pool_ref.providers.borrow_mut(provider);
+        let provider_info = table::borrow_mut(&mut pool_ref.providers, provider);
         
         provider_info.stake += amount;
         
@@ -91,9 +91,9 @@ module flashbet::reward_distributor {
     }
 
     fun get_pending_rewards_internal(pool_ref: &DistributionPool, provider: address): (u128, u128) {
-        if (!pool_ref.providers.contains(provider)) return (0, 0);
-        
-        let provider_info = pool_ref.providers.borrow(provider);
+        if (!table::contains(&pool_ref.providers, provider)) return (0, 0);
+
+        let provider_info = table::borrow(&pool_ref.providers, provider);
         if (provider_info.stake == 0) return (0, 0);
         
         let total_rewards_positive = ((provider_info.stake as u128) * pool_ref.pool.acc_reward_per_share_positive) / PRECISION;
@@ -115,9 +115,9 @@ module flashbet::reward_distributor {
     }
 
     fun get_effective_balance_internal(pool_ref: &DistributionPool, provider: address): u64 {
-        if (!pool_ref.providers.contains(provider)) return 0;
-        
-        let provider_info = pool_ref.providers.borrow(provider);
+        if (!table::contains(&pool_ref.providers, provider)) return 0;
+
+        let provider_info = table::borrow(&pool_ref.providers, provider);
         if (provider_info.stake == 0) return 0;
         
         let (pending_positive, pending_negative) = get_pending_rewards_internal(pool_ref, provider);
@@ -135,13 +135,13 @@ module flashbet::reward_distributor {
     public fun remove_stake(provider: address, amount: u64): u64 acquires DistributionPool {
         let pool_ref = borrow_global_mut<DistributionPool>(@flashbet);
         update_pool(&mut pool_ref.pool);
-        
-        assert!(pool_ref.providers.contains(provider), get_error_code(5));
-        
+
+        assert!(table::contains(&pool_ref.providers, provider), get_error_code(5));
+
         // Get provider info values before borrowing mutably
-        let provider_stake = pool_ref.providers.borrow(provider).stake;
-        let provider_reward_debt_pos = pool_ref.providers.borrow(provider).reward_debt_positive;
-        let provider_reward_debt_neg = pool_ref.providers.borrow(provider).reward_debt_negative;
+        let provider_stake = table::borrow(&pool_ref.providers, provider).stake;
+        let provider_reward_debt_pos = table::borrow(&pool_ref.providers, provider).reward_debt_positive;
+        let provider_reward_debt_neg = table::borrow(&pool_ref.providers, provider).reward_debt_negative;
         
         // Calculate pending rewards
         let total_rewards_positive = ((provider_stake as u128) * pool_ref.pool.acc_reward_per_share_positive) / PRECISION;
@@ -184,7 +184,7 @@ module flashbet::reward_distributor {
         };
         
         // Now mutably borrow provider info
-        let provider_info = pool_ref.providers.borrow_mut(provider);
+        let provider_info = table::borrow_mut(&mut pool_ref.providers, provider);
         
         if (stake_to_remove > 0) {
             assert!(provider_info.stake >= stake_to_remove, get_error_code(7));
@@ -213,7 +213,7 @@ module flashbet::reward_distributor {
         let remaining_stake = provider_info.stake;
         
         if (provider_info.stake == 0) {
-            pool_ref.providers.remove(provider);
+            table::remove(&mut pool_ref.providers, provider);
         };
         
         events::emit_liquidity_removed_event(provider, amount, remaining_stake);
@@ -252,8 +252,8 @@ module flashbet::reward_distributor {
     #[view]
     public fun get_provider_info(provider: address): ProviderBalance acquires DistributionPool {
         let pool_ref = borrow_global<DistributionPool>(@flashbet);
-        
-        if (!pool_ref.providers.contains(provider)) {
+
+        if (!table::contains(&pool_ref.providers, provider)) {
             return ProviderBalance {
                 stake: 0,
                 pending_rewards_positive: 0,
@@ -261,8 +261,8 @@ module flashbet::reward_distributor {
                 effective_balance: 0
             };
         };
-        
-        let provider_info = pool_ref.providers.borrow(provider);
+
+        let provider_info = table::borrow(&pool_ref.providers, provider);
         let (pending_positive, pending_negative) = get_pending_rewards_internal(pool_ref, provider);
         let effective_balance = get_effective_balance_internal(pool_ref, provider);
 

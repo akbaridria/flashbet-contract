@@ -45,7 +45,7 @@ module flashbet::liquidity_manager {
     public(package) fun distribute_pnl(pnl_positive: u128, pnl_negative: u128) acquires LiquidityPool {
         let pool = borrow_global_mut<LiquidityPool>(@flashbet);
         
-        reward_distributor::distribute_pnl( pnl_positive, pnl_negative);
+        reward_distributor::distribute_pnl(pnl_positive, pnl_negative);
 
         if (pnl_positive >= pnl_negative) {
             let net_positive = pnl_positive - pnl_negative;

@@ -12,6 +12,7 @@ module flashbet::errors {
     const E_INVALID_BET_AMOUNT: u64 = 11;
     const E_NEGATIVE_PRICE: u64 = 12;
     const E_PRICE_SLIPPAGE_EXCEEDED: u64 = 13;
+    const E_BET_NOT_FOUND: u64 = 14;
 
     public(package) fun get_error_code(bet_type: u8): u64 {
         if (bet_type == 1) {
@@ -40,6 +41,8 @@ module flashbet::errors {
             E_NEGATIVE_PRICE
         } else if (bet_type == 13) {
             E_PRICE_SLIPPAGE_EXCEEDED
+        } else if (bet_type == 14) {
+            E_BET_NOT_FOUND
         } else {
             bet_type as u64
         }
