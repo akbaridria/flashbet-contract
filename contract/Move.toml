@@ -1,26 +1,14 @@
 [package]
 name = "Flashbet"
 version = "1.0.0"
-authors = []
+authors = ["Akbar Idria <akbaridria15@gmail.com>"]
 
-# [dependencies]
-# AptosFramework = { git = "https://github.com/aptos-labs/aptos-framework.git", rev = "mainnet", subdir = "aptos-framework" }
-# SwitchboardAdapter = { git = "https://github.com/switchboard-xyz/aptos.git", rev = "main", subdir = "adapter/mainnet" }
 [dependencies]
 Pyth = { git = "https://github.com/pyth-network/pyth-crosschain.git", subdir = "target_chains/aptos/contracts", rev = "main" }
 
-[dev-addresses]
-flashbet = "0x63885cb809d48f2e40b82805b77720cc8ec0f79d0ddb0fc435bc40663378dc34"
-# switchboard_adapter = "0x890fd4ed8a26198011e7923f53f5f1e5eeb2cc389dd50b938f16cb95164dc81c"
+[addresses]
+flashbet = "0xc87812ad0cf720cb0e81eff27348a1de1b5900596dc21c55997332a945f2184c"
+mock_usdc = "0x13d6b6cbd54fbf90e7d1a168bd22bce37d0e79867e51b1a24c7ff88f53d6fae5"
 pyth = "0x7e783b349d3e89cf5931af376ebeadbfab855b3fa239b7ada8f5a92fbea6b387"
 deployer = "0xb31e712b26fd295357355f6845e77c888298636609e93bc9b05f0f604049f434"
 wormhole = "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"
-
-# [addresses]
-# flashbet = "_"
-# switchboard_adapter = "_"
-[addresses]
-flashbet = "_"
-pyth = "_"
-deployer = "_"
-wormhole = "_"

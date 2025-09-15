@@ -1,29 +1,52 @@
 module flashbet::vault {
-    use aptos_framework::coin;
     use aptos_framework::signer;
-    
-    use flashbet::usdc;
+    use aptos_framework::fungible_asset;
+    use aptos_framework::primary_fungible_store;
+    use aptos_framework::object;
+    use mock_usdc::usdc;
 
     struct Vault has key {
-        usdc: coin::Coin<usdc::USDC>,
+        extend_ref: object::ExtendRef,
     }
 
-    public(package) fun init_vault(account: &signer) {
-        move_to(account, Vault {
-            usdc: coin::zero<usdc::USDC>(),
-        });
+    public(package) fun initialize(account: &signer) {
+        let constructor_ref = object::create_named_object(account, b"vault");
+        let extend_ref = object::generate_extend_ref(&constructor_ref);
+        let vault_signer = object::generate_signer(&constructor_ref);
+        
+        move_to(&vault_signer, Vault { extend_ref });
     }
 
-    public(package) fun transfer_to_flashbet(account: &signer, amount: u64) acquires Vault {
-        let coin_in = coin::withdraw<usdc::USDC>(account, amount);
-        let vault = borrow_global_mut<Vault>(signer::address_of(account));
-        coin::merge(&mut vault.usdc, coin_in);
+    public(package) fun transfer_to_flashbet(account: &signer, amount: u64) {
+        let user_addr = signer::address_of(account);
+        let metadata = usdc::get_metadata();
+
+        let user_wallet = primary_fungible_store::ensure_primary_store_exists(user_addr, metadata);
+        let vault_wallet = primary_fungible_store::ensure_primary_store_exists(@flashbet, metadata);
+        
+        fungible_asset::transfer(
+            account,
+            vault_wallet,
+            user_wallet,
+            amount,
+        );
     }
 
-    public(package) fun transfer_to_user(user: address, amount: u64) acquires Vault {
-        let vault = borrow_global_mut<Vault>(@flashbet);
-        let coin_to_transfer = coin::extract(&mut vault.usdc, amount);
-        coin::deposit(user, coin_to_transfer);
+    public(package) fun transfer_to_user(user_addr: address, amount: u64) acquires Vault {
+        let vault = borrow_global<Vault>(@flashbet);
+        let vault_signer = object::generate_signer_for_extending(&vault.extend_ref);
+
+        let metadata = usdc::get_metadata();
+
+        let user_wallet = primary_fungible_store::ensure_primary_store_exists(user_addr, metadata);
+        let vault_wallet = primary_fungible_store::ensure_primary_store_exists(@flashbet, metadata);
+
+        fungible_asset::transfer(&vault_signer, vault_wallet, user_wallet, amount);
     }
 
+    #[view]
+    public fun get_vault_balance(): u64 {
+        let metadata = usdc::get_metadata();
+        primary_fungible_store::balance(@flashbet, metadata)
+    }
 }

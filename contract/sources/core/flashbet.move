@@ -1,6 +1,5 @@
 module flashbet::flashbet_core {
     use aptos_framework::signer;
-    use aptos_framework::coin;
     use aptos_framework::timestamp;
     use aptos_framework::option;
     
@@ -9,9 +8,10 @@ module flashbet::flashbet_core {
     use flashbet::errors::get_error_code;
     use flashbet::events;
     use flashbet::price_feed;
-    use flashbet::usdc;
     use flashbet::vault;
     use flashbet::reward_distributor::ProviderBalance;
+
+    use mock_usdc::usdc;
 
     const PROTOCOL_FEE: u64 = 100;
     const RESOLVER_FEE: u64 = 100;
@@ -21,7 +21,6 @@ module flashbet::flashbet_core {
     const MAX_BET_AMOUNT: u64 = 1_000_000_000;
 
     struct Flashbet has key {
-        balance: coin::Coin<usdc::USDC>,
         pyth_btc_price_id: vector<u8>,
         is_paused: bool,
     }
@@ -29,13 +28,11 @@ module flashbet::flashbet_core {
     fun init_module(account: &signer) {
         // currently we are only supporting BTC/USD price feed
         let btc_price_identifier = x"e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43";
-        usdc::init(account);
         price_feed::init_price_feed(account, btc_price_identifier);
         bet_manager::init_bet_manager(account);
         liquidity_manager::init_liquidity_manager(account);
 
         move_to(account, Flashbet {
-            balance: coin::zero<usdc::USDC>(),
             pyth_btc_price_id: btc_price_identifier,
             is_paused: true,
         });
@@ -199,6 +196,10 @@ module flashbet::flashbet_core {
         liquidity_manager::remove_liquidity(user_address, amount);
         vault::transfer_to_user(user_address, amount);
         check_and_update_pause_state();
+    }
+
+    public entry fun mint_usdc(account: &signer) {
+        usdc::mint(signer::address_of(account));
     }
 
     #[view]
