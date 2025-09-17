@@ -4,9 +4,8 @@ module mock_usdc::usdc {
     use aptos_framework::primary_fungible_store;
     use aptos_framework::option;
 
-
     use std::string::utf8;
-    
+
     const ENOT_OWNER: u64 = 1;
     const ASSET_SYMBOL: vector<u8> = b"USDC";
     const ASSET_NAME: vector<u8> = b"USD Coin";
@@ -14,20 +13,19 @@ module mock_usdc::usdc {
     struct ManagedFungibleAsset has key {
         mint_ref: MintRef,
         transfer_ref: TransferRef,
-        burn_ref: BurnRef,
+        burn_ref: BurnRef
     }
-    
-    
+
     fun init_module(admin: &signer) {
         let constructor_ref = &object::create_named_object(admin, ASSET_SYMBOL);
         primary_fungible_store::create_primary_store_enabled_fungible_asset(
             constructor_ref,
             option::none(),
-            utf8(ASSET_NAME), 
-            utf8(ASSET_SYMBOL), 
-            6, 
-            utf8(b""), 
-            utf8(b""), 
+            utf8(ASSET_NAME),
+            utf8(ASSET_SYMBOL),
+            6,
+            utf8(b""),
+            utf8(b"")
         );
 
         let mint_ref = fungible_asset::generate_mint_ref(constructor_ref);
@@ -47,23 +45,30 @@ module mock_usdc::usdc {
 
     public entry fun mint_with_amount(to: address, amount: u64) acquires ManagedFungibleAsset {
         let asset = get_metadata();
-        let managed_fungible_asset = borrow_global<ManagedFungibleAsset>(object::object_address(&asset));
+        let managed_fungible_asset =
+            borrow_global<ManagedFungibleAsset>(object::object_address(&asset));
         let to_wallet = primary_fungible_store::ensure_primary_store_exists(to, asset);
         let fa = fungible_asset::mint(&managed_fungible_asset.mint_ref, amount);
-        fungible_asset::deposit_with_ref(&managed_fungible_asset.transfer_ref, to_wallet, fa);
+        fungible_asset::deposit_with_ref(
+            &managed_fungible_asset.transfer_ref, to_wallet, fa
+        );
     }
 
     public entry fun mint(to: address) acquires ManagedFungibleAsset {
         let asset = get_metadata();
-        let managed_fungible_asset = borrow_global<ManagedFungibleAsset>(object::object_address(&asset));
+        let managed_fungible_asset =
+            borrow_global<ManagedFungibleAsset>(object::object_address(&asset));
         let to_wallet = primary_fungible_store::ensure_primary_store_exists(to, asset);
-        let fa = fungible_asset::mint(&managed_fungible_asset.mint_ref, MAX_MINT_AMOUNT);
-        fungible_asset::deposit_with_ref(&managed_fungible_asset.transfer_ref, to_wallet, fa);
+        let fa = fungible_asset::mint(
+            &managed_fungible_asset.mint_ref, MAX_MINT_AMOUNT
+        );
+        fungible_asset::deposit_with_ref(
+            &managed_fungible_asset.transfer_ref, to_wallet, fa
+        );
     }
 
     #[test_only]
     public fun init_module_for_test(sender: &signer) {
         init_module(sender);
     }
-    
 }
