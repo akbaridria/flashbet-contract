@@ -106,7 +106,7 @@ module flashbet::bet_manager {
         let bet_manager = borrow_global_mut<BetManager>(@flashbet);
         let bet_ref = table::borrow_mut(&mut bet_manager.bets, bet_id);
 
-        assert!(bet_ref.status == Status::Resolved, get_error_code(2));
+        assert!(bet_ref.status == Status::Pending, get_error_code(2));
 
         assert!(timestamp::now_seconds() >= bet_ref.expiry_time, get_error_code(3));
 

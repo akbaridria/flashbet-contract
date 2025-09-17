@@ -2,8 +2,10 @@ module mock_usdc::usdc {
     use aptos_framework::fungible_asset::{Self, MintRef, TransferRef, BurnRef, Metadata};
     use aptos_framework::object::{Self, Object};
     use aptos_framework::primary_fungible_store;
-    use std::string::utf8;
     use aptos_framework::option;
+
+
+    use std::string::utf8;
     
     const ENOT_OWNER: u64 = 1;
     const ASSET_SYMBOL: vector<u8> = b"USDC";
@@ -43,6 +45,14 @@ module mock_usdc::usdc {
         object::address_to_object<Metadata>(asset_address)
     }
 
+    public entry fun mint_with_amount(to: address, amount: u64) acquires ManagedFungibleAsset {
+        let asset = get_metadata();
+        let managed_fungible_asset = borrow_global<ManagedFungibleAsset>(object::object_address(&asset));
+        let to_wallet = primary_fungible_store::ensure_primary_store_exists(to, asset);
+        let fa = fungible_asset::mint(&managed_fungible_asset.mint_ref, amount);
+        fungible_asset::deposit_with_ref(&managed_fungible_asset.transfer_ref, to_wallet, fa);
+    }
+
     public entry fun mint(to: address) acquires ManagedFungibleAsset {
         let asset = get_metadata();
         let managed_fungible_asset = borrow_global<ManagedFungibleAsset>(object::object_address(&asset));
@@ -50,4 +60,10 @@ module mock_usdc::usdc {
         let fa = fungible_asset::mint(&managed_fungible_asset.mint_ref, MAX_MINT_AMOUNT);
         fungible_asset::deposit_with_ref(&managed_fungible_asset.transfer_ref, to_wallet, fa);
     }
+
+    #[test_only]
+    public fun init_module_for_test(sender: &signer) {
+        init_module(sender);
+    }
+    
 }

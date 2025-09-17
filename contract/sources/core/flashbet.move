@@ -10,6 +10,7 @@ module flashbet::flashbet_core {
     use flashbet::price_feed;
     use flashbet::vault;
     use flashbet::reward_distributor::ProviderBalance;
+    use flashbet::mock_price_feed;
 
     use mock_usdc::usdc;
 
@@ -31,6 +32,7 @@ module flashbet::flashbet_core {
         price_feed::init_price_feed(account, btc_price_identifier);
         bet_manager::init_bet_manager(account);
         liquidity_manager::init_liquidity_manager(account);
+        vault::initialize(account);
 
         move_to(account, Flashbet {
             pyth_btc_price_id: btc_price_identifier,
@@ -80,13 +82,14 @@ module flashbet::flashbet_core {
         let user_address = signer::address_of(user);
 
         // update price feed
-        let current_price = price_feed::get_price(user, update_data);
+        // let current_price = price_feed::get_price(user, update_data);
+        let current_price = mock_price_feed::get_price(user, update_data);
         
         // check slippage in entry price
         if (is_long) {
-            assert!(current_price > slippage_price, get_error_code(13));
+            assert!(current_price >= slippage_price, get_error_code(13));
         } else {
-            assert!(current_price < slippage_price, get_error_code(13));
+            assert!(current_price <= slippage_price, get_error_code(13));
         };
 
         // transfer USDC from user to flashbet
@@ -118,11 +121,13 @@ module flashbet::flashbet_core {
 
         // refund the user
         let resolver_fee = (bet_amount * RESOLVER_FEE) / BASIS_POINTS;
-        let total_refund = bet_amount - resolver_fee;
+        let total_refund = bet_amount - resolver_fee; 
+        
         assert!(total_refund <= liquidity_manager::get_total_liquidity(), get_error_code(8));
+        
         vault::transfer_to_user(bet_user, total_refund);
         vault::transfer_to_user(user_address, resolver_fee);
-
+        
         // emit event
         events::emit_bet_cancelled_event(bet_id);
 
@@ -138,7 +143,8 @@ module flashbet::flashbet_core {
         let user_address = signer::address_of(user);
 
         // update price feed
-        let current_price = price_feed::get_price(user, update_data);
+        // let current_price = price_feed::get_price(user, update_data);
+        let current_price = mock_price_feed::get_price(user, update_data);
 
         let (won, payout, early_resolve) = bet_manager::resolve_bet(bet_id, current_price, user_address);
         if (early_resolve) {
@@ -209,6 +215,11 @@ module flashbet::flashbet_core {
     }
 
     #[view]
+    public fun get_vault_balance(): u64 {
+        vault::get_vault_balance()
+    }
+
+    #[view]
     public fun get_provider_liquidity(provider: address): option::Option<ProviderBalance> {
         liquidity_manager::get_provider_liquidity(provider)
     }
@@ -221,5 +232,10 @@ module flashbet::flashbet_core {
     #[view]
     public fun get_user_bets(user: address): option::Option<vector<u64>> {
         bet_manager::get_user_bets(user)
+    }
+
+    #[test_only]
+    public fun init_module_for_test(sender: &signer) {
+        init_module(sender);
     }
 }

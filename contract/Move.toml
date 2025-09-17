@@ -7,6 +7,7 @@ authors = ["Akbar Idria <akbaridria15@gmail.com>"]
 Pyth = { git = "https://github.com/pyth-network/pyth-crosschain.git", subdir = "target_chains/aptos/contracts", rev = "main" }
 
 [addresses]
+flashbet_deployer = "0x65935e246555d083c7bcf957431b48afd50f1e8ab9f2ec05bfbd527080a511f0"
 flashbet = "0xc87812ad0cf720cb0e81eff27348a1de1b5900596dc21c55997332a945f2184c"
 mock_usdc = "0x13d6b6cbd54fbf90e7d1a168bd22bce37d0e79867e51b1a24c7ff88f53d6fae5"
 pyth = "0x7e783b349d3e89cf5931af376ebeadbfab855b3fa239b7ada8f5a92fbea6b387"
