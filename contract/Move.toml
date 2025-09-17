@@ -5,11 +5,11 @@ authors = ["Akbar Idria <akbaridria15@gmail.com>"]
 
 [dependencies]
 Pyth = { git = "https://github.com/pyth-network/pyth-crosschain.git", subdir = "target_chains/aptos/contracts", rev = "main" }
+mock-usdc = { local = "../mock-usdc" }
 
 [addresses]
-flashbet_deployer = "0x65935e246555d083c7bcf957431b48afd50f1e8ab9f2ec05bfbd527080a511f0"
-flashbet = "0xc87812ad0cf720cb0e81eff27348a1de1b5900596dc21c55997332a945f2184c"
-mock_usdc = "0x13d6b6cbd54fbf90e7d1a168bd22bce37d0e79867e51b1a24c7ff88f53d6fae5"
+flashbet = "0xb2f01c24171f7dc1b138b4e020aa9f29f2811b99aba5b833fb9c75061da1c795"
+mock_usdc="0x4bb400aa241f0b7a0fb9ed4327b063ee2583c1e8dc810083f45cc08c378eb091"
 pyth = "0x7e783b349d3e89cf5931af376ebeadbfab855b3fa239b7ada8f5a92fbea6b387"
 deployer = "0xb31e712b26fd295357355f6845e77c888298636609e93bc9b05f0f604049f434"
 wormhole = "0x5bc11445584a763c1fa7ed39081f1b920954da14e04b32440cba863d03e19625"
