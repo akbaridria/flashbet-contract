@@ -16,15 +16,13 @@ module flashbet::errors {
         11, // E_INVALID_BET_AMOUNT
         12, // E_NEGATIVE_PRICE
         13, // E_PRICE_SLIPPAGE_EXCEEDED
-        14  // E_BET_NOT_FOUND
+        14 // E_BET_NOT_FOUND
     ];
 
     public(package) fun get_error_code(bet_type: u8): u64 {
         let idx = bet_type as u64;
         if (idx < vector::length(&ERROR_CODES)) {
             ERROR_CODES[idx]
-        } else {
-            idx
-        }
+        } else { idx }
     }
 }

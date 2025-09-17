@@ -23,24 +23,27 @@ module flashbet::bet_manager {
         is_long: bool,
         won: bool,
         resolver: address,
-        status: Status,
+        status: Status
     }
 
     struct BetManager has key {
         next_bet_id: u64,
         bets: table::Table<u64, Bet>,
-        user_bets: table::Table<address, vector<u64>>,
+        user_bets: table::Table<address, vector<u64>>
     }
 
     const PAYOUT_MULTIPLIER: u64 = 17_500;
     const BASIS_POINTS: u64 = 10_000;
 
     public(package) fun init_bet_manager(account: &signer) {
-        move_to(account, BetManager {
-            next_bet_id: 1,
-            bets: table::new(),
-            user_bets: table::new(),
-        });
+        move_to(
+            account,
+            BetManager {
+                next_bet_id: 1,
+                bets: table::new(),
+                user_bets: table::new()
+            }
+        );
     }
 
     fun new_bet(
@@ -61,7 +64,7 @@ module flashbet::bet_manager {
             is_long,
             won: false,
             resolver: @0x0,
-            status: Status::Pending,
+            status: Status::Pending
         }
     }
 
@@ -70,29 +73,38 @@ module flashbet::bet_manager {
         amount: u64,
         duration: u64,
         is_long: bool,
-        entry_price: u64,
+        entry_price: u64
     ): u64 acquires BetManager {
         let bet_manager = borrow_global_mut<BetManager>(@flashbet);
         let bet_id = bet_manager.next_bet_id;
         bet_manager.next_bet_id = bet_id + 1;
 
-        table::add(&mut bet_manager.bets, bet_id, new_bet(
+        table::add(
+            &mut bet_manager.bets,
             bet_id,
-            user,
-            amount,
-            entry_price,
-            duration,
-            is_long
-        ));
+            new_bet(
+                bet_id,
+                user,
+                amount,
+                entry_price,
+                duration,
+                is_long
+            )
+        );
 
         if (!table::contains(&bet_manager.user_bets, user)) {
             table::add(&mut bet_manager.user_bets, user, vector::empty<u64>());
         };
-        
+
         let user_bets = table::borrow_mut(&mut bet_manager.user_bets, user);
         vector::push_back(user_bets, bet_id);
 
-        events::emit_placed_bet_event(bet_id, user, amount, timestamp::now_seconds() + duration);
+        events::emit_placed_bet_event(
+            bet_id,
+            user,
+            amount,
+            timestamp::now_seconds() + duration
+        );
 
         bet_id
     }
@@ -100,7 +112,7 @@ module flashbet::bet_manager {
     public(package) fun resolve_bet(
         bet_id: u64,
         exit_price: u64,
-        resolver: address,
+        resolver: address
     ): (bool, u64, bool) acquires BetManager {
 
         let bet_manager = borrow_global_mut<BetManager>(@flashbet);
@@ -150,7 +162,9 @@ module flashbet::bet_manager {
         events::emit_bet_cancelled_event(bet_id);
     }
 
-    public(package) fun unpack_bet(bet: &Bet): (u64, address, u64, u64, u64, u64, bool, bool, address, Status) {
+    public(package) fun unpack_bet(
+        bet: &Bet
+    ): (u64, address, u64, u64, u64, u64, bool, bool, address, Status) {
         (
             bet.id,
             bet.user,
@@ -178,13 +192,18 @@ module flashbet::bet_manager {
     #[view]
     public(package) fun can_resolve_bet(bet_id: u64): bool acquires BetManager {
         let bet_manager = borrow_global<BetManager>(@flashbet);
-        if (!table::contains(&bet_manager.bets, bet_id)) return false;
+        if (!table::contains(&bet_manager.bets, bet_id))
+            return false;
         let bet = table::borrow(&bet_manager.bets, bet_id);
-        bet.status == Status::Pending && timestamp::now_seconds() >= bet.expiry_time && bet.user != @0x0
+        bet.status == Status::Pending
+            && timestamp::now_seconds() >= bet.expiry_time
+            && bet.user != @0x0
     }
 
     #[view]
-    public(package) fun get_user_bets(user: address): option::Option<vector<u64>> acquires BetManager {
+    public(package) fun get_user_bets(
+        user: address
+    ): option::Option<vector<u64>> acquires BetManager {
         let bet_manager = borrow_global<BetManager>(@flashbet);
         if (table::contains(&bet_manager.user_bets, user)) {
             option::some(*table::borrow(&bet_manager.user_bets, user))

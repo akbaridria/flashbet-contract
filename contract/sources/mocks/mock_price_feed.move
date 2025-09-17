@@ -1,7 +1,9 @@
 module flashbet::mock_price_feed {
     use aptos_framework::signer;
 
-    struct PriceFeed has key { price: u64 }
+    struct PriceFeed has key {
+        price: u64
+    }
 
     public fun init_price_feed(account: &signer, price: u64) {
         move_to(account, PriceFeed { price });
@@ -12,7 +14,9 @@ module flashbet::mock_price_feed {
         feed.price = price;
     }
 
-    public fun get_price(_user: &signer, _pyth_price_update: vector<vector<u8>>): u64 acquires PriceFeed {
+    public fun get_price(
+        _user: &signer, _pyth_price_update: vector<vector<u8>>
+    ): u64 acquires PriceFeed {
         let feed = borrow_global<PriceFeed>(@flashbet);
         feed.price
     }

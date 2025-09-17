@@ -2,7 +2,7 @@ module flashbet::flashbet_core {
     use aptos_framework::signer;
     use aptos_framework::timestamp;
     use aptos_framework::option;
-    
+
     use flashbet::bet_manager;
     use flashbet::liquidity_manager;
     use flashbet::errors::get_error_code;
@@ -23,28 +23,30 @@ module flashbet::flashbet_core {
 
     struct Flashbet has key {
         pyth_btc_price_id: vector<u8>,
-        is_paused: bool,
+        is_paused: bool
     }
 
     fun init_module(account: &signer) {
         // currently we are only supporting BTC/USD price feed
-        let btc_price_identifier = x"e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43";
+        let btc_price_identifier =
+            x"e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43";
         price_feed::init_price_feed(account, btc_price_identifier);
         bet_manager::init_bet_manager(account);
         liquidity_manager::init_liquidity_manager(account);
         vault::initialize(account);
 
-        move_to(account, Flashbet {
-            pyth_btc_price_id: btc_price_identifier,
-            is_paused: true,
-        });
+        move_to(
+            account,
+            Flashbet { pyth_btc_price_id: btc_price_identifier, is_paused: true }
+        );
     }
 
     fun check_and_update_pause_state() acquires Flashbet {
         let flashbet = borrow_global_mut<Flashbet>(@flashbet);
         let total = liquidity_manager::get_total_liquidity();
         let locked = liquidity_manager::get_locked_liquidity();
-        let utilization_rate = if (total == 0) 0 else locked * BASIS_POINTS / total;
+        let utilization_rate = if (total == 0) 0
+        else locked * BASIS_POINTS / total;
 
         let changed = false;
         if (utilization_rate >= LIQUIDITY_LOCK_THRESHOLD && !flashbet.is_paused) {
@@ -76,7 +78,10 @@ module flashbet::flashbet_core {
 
         // validation
         assert!(flashbet.is_paused == false, get_error_code(9));
-        assert!(duration >= 120 && duration <= 600, get_error_code(10));
+        assert!(
+            duration >= 120 && duration <= 600,
+            get_error_code(10)
+        );
         assert!(amount <= MAX_BET_AMOUNT, get_error_code(11));
 
         let user_address = signer::address_of(user);
@@ -84,7 +89,7 @@ module flashbet::flashbet_core {
         // update price feed
         // let current_price = price_feed::get_price(user, update_data);
         let current_price = mock_price_feed::get_price(user, update_data);
-        
+
         // check slippage in entry price
         if (is_long) {
             assert!(current_price >= slippage_price, get_error_code(13));
@@ -99,8 +104,14 @@ module flashbet::flashbet_core {
         liquidity_manager::lock_liquidity(lock_amount);
 
         // place bet
-        bet_manager::place_bet(user_address, amount, duration, is_long, current_price);
-        
+        bet_manager::place_bet(
+            user_address,
+            amount,
+            duration,
+            is_long,
+            current_price
+        );
+
         // check and update pause state
         check_and_update_pause_state();
     }
@@ -111,7 +122,8 @@ module flashbet::flashbet_core {
 
         let user_address = signer::address_of(user);
         let bet_ref = option::borrow(&bet_opt);
-        let (bet_id,bet_user,bet_amount,_,_,_,_,_,_,_) = bet_manager::unpack_bet(bet_ref);
+        let (bet_id, bet_user, bet_amount, _, _, _, _, _, _, _) =
+            bet_manager::unpack_bet(bet_ref);
 
         // cancel bet
         bet_manager::cancel_bet(bet_id);
@@ -121,13 +133,15 @@ module flashbet::flashbet_core {
 
         // refund the user
         let resolver_fee = (bet_amount * RESOLVER_FEE) / BASIS_POINTS;
-        let total_refund = bet_amount - resolver_fee; 
-        
-        assert!(total_refund <= liquidity_manager::get_total_liquidity(), get_error_code(8));
-        
+        let total_refund = bet_amount - resolver_fee;
+
+        assert!(
+            total_refund <= liquidity_manager::get_total_liquidity(), get_error_code(8)
+        );
+
         vault::transfer_to_user(bet_user, total_refund);
         vault::transfer_to_user(user_address, resolver_fee);
-        
+
         // emit event
         events::emit_bet_cancelled_event(bet_id);
 
@@ -135,7 +149,9 @@ module flashbet::flashbet_core {
         check_and_update_pause_state();
     }
 
-    public entry fun resolve_bet(user: &signer, bet_id: u64, update_data: vector<vector<u8>>) acquires Flashbet {
+    public entry fun resolve_bet(
+        user: &signer, bet_id: u64, update_data: vector<vector<u8>>
+    ) acquires Flashbet {
         let bet_opt = bet_manager::get_bet(bet_id);
         assert!(option::is_some(&bet_opt), get_error_code(14));
         // TODO: check if status is pending and expiry time has passed and less then 60 seconds from expiry time
@@ -146,7 +162,8 @@ module flashbet::flashbet_core {
         // let current_price = price_feed::get_price(user, update_data);
         let current_price = mock_price_feed::get_price(user, update_data);
 
-        let (won, payout, early_resolve) = bet_manager::resolve_bet(bet_id, current_price, user_address);
+        let (won, payout, early_resolve) =
+            bet_manager::resolve_bet(bet_id, current_price, user_address);
         if (early_resolve) {
             // if early resolved, just cancel the bet without any payout
             cancel_bet(user, bet_id);
@@ -154,7 +171,8 @@ module flashbet::flashbet_core {
         };
 
         let bet_ref = option::borrow(&bet_opt);
-        let (_,bet_user,bet_amount,_,_,_,_,_,_,_) = bet_manager::unpack_bet(bet_ref);
+        let (_, bet_user, bet_amount, _, _, _, _, _, _, _) =
+            bet_manager::unpack_bet(bet_ref);
 
         let lock_amount = (bet_amount * LIQUIDITY_LOCK_RATIO) / BASIS_POINTS;
         liquidity_manager::unlock_liquidity(lock_amount);
@@ -166,18 +184,24 @@ module flashbet::flashbet_core {
             let resolver_fee = (bet_amount * RESOLVER_FEE) / BASIS_POINTS;
             let net_payout = total_payout - protocol_fee - resolver_fee;
 
-            assert!(total_payout <= liquidity_manager::get_total_liquidity(), get_error_code(8));
-            
+            assert!(
+                total_payout <= liquidity_manager::get_total_liquidity(),
+                get_error_code(8)
+            );
+
             vault::transfer_to_user(user_address, resolver_fee);
             vault::transfer_to_user(bet_user, net_payout);
-            
+
         } else {
             // pay the resolver fee from liquidity pool
             let resolver_fee = (bet_amount * RESOLVER_FEE) / BASIS_POINTS;
             total_payout = resolver_fee;
 
-            assert!(total_payout <= liquidity_manager::get_total_liquidity(), get_error_code(8));
-            
+            assert!(
+                total_payout <= liquidity_manager::get_total_liquidity(),
+                get_error_code(8)
+            );
+
             vault::transfer_to_user(user_address, resolver_fee);
         };
 
@@ -211,7 +235,11 @@ module flashbet::flashbet_core {
     #[view]
     public fun get_market_state(): (u64, u64, bool) acquires Flashbet {
         let flashbet = borrow_global<Flashbet>(@flashbet);
-        (liquidity_manager::get_total_liquidity(), liquidity_manager::get_available_liquidity(), flashbet.is_paused)
+        (
+            liquidity_manager::get_total_liquidity(),
+            liquidity_manager::get_available_liquidity(),
+            flashbet.is_paused
+        )
     }
 
     #[view]
