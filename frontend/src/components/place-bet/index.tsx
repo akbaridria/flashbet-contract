@@ -25,10 +25,9 @@ const PlaceBet = () => {
     account?.address.toStringLong() || null
   );
 
-  console.log("Balance:", balance);
   return (
     <WalletOverlay description="Connect your wallet to start a prediction">
-      <div className="p-4 bg-secondary rounded-lg border border-primary border-dashed space-y-4">
+      <div className="p-4 bg-card rounded-lg border border-primary border-dashed space-y-4">
         <div className="flex flex-col">
           <div className="text-lg font-semibold">Place Your Bet</div>
           <div className="text-xs text-muted-foreground">

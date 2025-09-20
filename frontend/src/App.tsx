@@ -1,15 +1,16 @@
+import { Toaster } from "./components/ui/sonner";
+import TradingViewWidget from "./components/tradingview-widget";
+import WrongNetworkAlert from "./components/wrong-network-alert";
 import Header from "./components/header";
 import PlaceBet from "./components/place-bet";
-import TradingViewWidget from "./components/tradingview-widget";
-import { Toaster } from "./components/ui/sonner";
-import WrongNetworkAlert from "./components/wrong-network-alert";
+import Stats from "./components/stats";
 
 const App = () => {
   return (
     <main>
       <Header />
       <div className="max-w-[1200px] mx-auto p-4 min-h-screen border-x border-dashed border-primary space-y-6">
-        <div className="bg-secondary border border-primary border-dashed rounded-lg p-6">
+        <div className="bg-card border border-primary border-dashed rounded-lg p-6">
           <h1 className="text-xl font-bold mb-2">FlashBet</h1>
           <p className="text-muted-foreground text-sm">
             FlashBet lets you predict whether the{" "}
@@ -25,6 +26,7 @@ const App = () => {
             (Pyth Network).
           </p>
         </div>
+        <Stats />
         <div className="relative">
           <div className="absolute inset-0 border border-primary border-dashed rounded-lg pointer-events-none"></div>
           <TradingViewWidget />

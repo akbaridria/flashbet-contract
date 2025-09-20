@@ -4,16 +4,11 @@ import { getFungibleAssetBalance } from "@/services/fungible-asset";
 
 export function useBalanceQuery(
   address: string | null,
-  options?: {
-    enabled?: boolean;
-    refetchInterval?: number;
-  }
 ) {
   return useQuery({
     queryKey: queryKeys.balance(address || ""),
     queryFn: () => getFungibleAssetBalance(address as `0x${string}`),
-    enabled: !!address && (options?.enabled ?? true),
-    refetchInterval: options?.refetchInterval ?? 30_000,
+    enabled: !!address,
     select: (data) => ({
       raw: data,
       formatted: Number(data) / 1e6,
