@@ -1,4 +1,5 @@
 import Header from "./components/header";
+import TradingViewWidget from "./components/tradingview-widget";
 import { Toaster } from "./components/ui/sonner";
 
 const App = () => {
@@ -23,7 +24,7 @@ const App = () => {
         </div>
         <div className="relative">
           <div className="absolute inset-0 border border-primary border-dashed rounded-lg pointer-events-none"></div>
-          <div>this is tradingview widget</div>
+          <TradingViewWidget />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>this is place bet</div>
