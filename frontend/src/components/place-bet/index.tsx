@@ -27,7 +27,7 @@ const PlaceBet = () => {
 
   return (
     <WalletOverlay description="Connect your wallet to start a prediction">
-      <div className="p-4 bg-card rounded-lg border border-primary border-dashed space-y-4">
+      <div className="p-4 bg-card rounded-lg border border-secondary  space-y-4">
         <div className="flex flex-col">
           <div className="text-lg font-semibold">Place Your Bet</div>
           <div className="text-xs text-muted-foreground">
@@ -62,9 +62,9 @@ const PlaceBet = () => {
               <div
                 key={option.label}
                 className={cn(
-                  "bg-input/20 border rounded-lg px-4 py-1 hover:bg-input/30 hover:border-primary transition-colors cursor-pointer",
+                  "bg-input/20 border rounded-lg px-4 py-1 hover:bg-input/30 hover:border-secondary transition-colors cursor-pointer",
                   {
-                    "border-primary bg-input/30": betDuration === option.value,
+                    "border-secondary bg-input/30": betDuration === option.value,
                   }
                 )}
                 onClick={() => setBetDuration(option.value)}

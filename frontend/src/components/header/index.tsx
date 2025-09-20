@@ -7,8 +7,8 @@ import WalletSelector from "./components/wallet-selector";
 
 const Header = () => {
   return (
-    <div className="border-b border-dashed border-primary sticky top-0 z-10 bg-background">
-      <div className="max-w-[1200px] mx-auto p-4 border-x border-dashed border-primary">
+    <div className="border-b  border-secondary sticky top-0 z-10 bg-background">
+      <div className="max-w-[1200px] mx-auto p-4 border-x  border-secondary">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ZapIcon className="h-6 w-6" />

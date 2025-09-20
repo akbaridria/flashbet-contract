@@ -20,7 +20,7 @@ const WalletOverlay: React.FC<WalletOverlayProps> = ({
   return (
     <div className="relative">
       <div className="pointer-events-none select-none h-full">{children}</div>
-      <div className="absolute inset-0 flex items-center justify-center  border border-primary border-dashed bg-background/80 backdrop-blur-sm rounded-lg">
+      <div className="absolute inset-0 flex items-center justify-center  border border-secondary  bg-background/80 backdrop-blur-sm rounded-lg">
         <div className="text-center space-y-3">
           <div className="flex justify-center">
             <div className="p-3 bg-primary/10 rounded-full">

@@ -35,7 +35,7 @@ const Stats = () => {
     }, [data]);
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <Card className="border-primary border-dashed">
+      <Card className="border-secondary ">
         <CardHeader>
           <CardTitle>Total Liquidity</CardTitle>
           <CardAction>
@@ -50,7 +50,7 @@ const Stats = () => {
           <p className="text-xs text-muted-foreground">Total Liquidity</p>
         </CardContent>
       </Card>
-      <Card className="border-primary border-dashed">
+      <Card className="border-secondary ">
         <CardHeader>
           <CardTitle>Total Locked Liquidity</CardTitle>
           <CardAction>
@@ -65,7 +65,7 @@ const Stats = () => {
           <p className="text-xs text-muted-foreground">In active positions</p>
         </CardContent>
       </Card>
-      <Card className="border-primary border-dashed">
+      <Card className="border-secondary ">
         <CardHeader>
           <CardTitle>Utilization Rate</CardTitle>
           <CardAction>
