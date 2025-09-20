@@ -38,6 +38,7 @@ module mock_usdc::usdc {
         );
     }
 
+    #[view]
     public fun get_metadata(): Object<Metadata> {
         let asset_address = object::create_object_address(&@mock_usdc, ASSET_SYMBOL);
         object::address_to_object<Metadata>(asset_address)

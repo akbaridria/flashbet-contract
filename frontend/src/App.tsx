@@ -1,6 +1,8 @@
 import Header from "./components/header";
+import PlaceBet from "./components/place-bet";
 import TradingViewWidget from "./components/tradingview-widget";
 import { Toaster } from "./components/ui/sonner";
+import WrongNetworkAlert from "./components/wrong-network-alert";
 
 const App = () => {
   return (
@@ -19,7 +21,8 @@ const App = () => {
             <span className="font-bold text-white">2 to 10 minutes</span>, and
             bet. You win <span className="font-bold text-white">1.75x</span> if
             you're correct! Fast, simple, and supported by{" "}
-            <span className="font-bold text-white">on-chain price feeds</span> (Pyth Network).
+            <span className="font-bold text-white">on-chain price feeds</span>{" "}
+            (Pyth Network).
           </p>
         </div>
         <div className="relative">
@@ -27,12 +30,13 @@ const App = () => {
           <TradingViewWidget />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>this is place bet</div>
+          <PlaceBet />
           <div>this is liquidity management</div>
           <div>this is recent activity</div>
         </div>
       </div>
       <Toaster />
+      <WrongNetworkAlert />
     </main>
   );
 };
