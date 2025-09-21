@@ -5,6 +5,7 @@ import Header from "./components/header";
 import PlaceBet from "./components/place-bet";
 import Stats from "./components/stats";
 import LiquidityManagement from "./components/liquidity-management";
+import RecentActivity from "./components/recent-activity";
 
 const App = () => {
   return (
@@ -35,7 +36,7 @@ const App = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <PlaceBet />
           <LiquidityManagement />
-          <div>this is recent activity</div>
+          <RecentActivity />
         </div>
       </div>
       <Toaster />

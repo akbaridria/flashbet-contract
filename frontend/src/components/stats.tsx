@@ -25,14 +25,26 @@ const Stats = () => {
             : "--",
         utilizationRate:
           data?.availableLiquidity && data?.totalLiquidity
-            ? `${Math.round(
+            ? `${(
                 ((data.totalLiquidity - data.availableLiquidity) /
                   data.totalLiquidity) *
-                  100
-              )}%`
+                100
+              ).toFixed(4)}%`
             : "--",
       };
     }, [data]);
+
+  console.log(data);
+
+  console.log(
+    data?.availableLiquidity && data?.totalLiquidity
+      ? `${Math.round(
+          ((data.totalLiquidity - data.availableLiquidity) /
+            data.totalLiquidity) *
+            100
+        )}%`
+      : "--"
+  );
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <Card className="border-secondary ">

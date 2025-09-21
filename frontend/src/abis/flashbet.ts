@@ -1,5 +1,5 @@
 export const FLASHBET_ABI = {
-  address: "0xb2f01c24171f7dc1b138b4e020aa9f29f2811b99aba5b833fb9c75061da1c795",
+  address: "0xab113bc33b4376ec543703c357d821eae860e447353bed8efb2e84ef6045958e",
   name: "flashbet_core",
   friends: [],
   exposed_functions: [

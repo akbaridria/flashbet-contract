@@ -35,7 +35,7 @@ const FaucetButton = () => {
           trigger={
             <Button variant="ghost">
               <DropletsIcon className="h-4 w-4" />
-              <div>Faucet</div>
+              <div className="hidden md:block">Faucet</div>
             </Button>
           }
         />

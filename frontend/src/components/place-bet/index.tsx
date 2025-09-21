@@ -4,17 +4,12 @@ import { Label } from "../ui/label";
 import WalletOverlay from "../wallet-overlay";
 import { Input } from "../ui/input";
 import CurrentBtcPrice from "../current-btc-price";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { cn, formatCurrency } from "@/lib/utils";
 import { useBalanceQuery } from "@/hooks/useBalance";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
-
-const durationOptions = [
-  { label: "2m", value: 60 * 2 },
-  { label: "3m", value: 60 * 3 },
-  { label: "5m", value: 60 * 5 },
-  { label: "10m", value: 60 * 10 },
-];
+import { DURATION_OPTIONS } from "@/config/constant";
+import DialogConfirmationBet from "./components/dialog-confirmation";
 
 const PlaceBet = () => {
   const { account } = useWallet();
@@ -24,6 +19,12 @@ const PlaceBet = () => {
   const { data: balance } = useBalanceQuery(
     account?.address.toStringLong() || null
   );
+
+  const resetForm = useCallback(() => {
+    setBetDirection("up");
+    setBetAmount("");
+    setBetDuration(0);
+  }, []);
 
   return (
     <WalletOverlay description="Connect your wallet to start a prediction">
@@ -58,13 +59,13 @@ const PlaceBet = () => {
         <div className="space-y-2">
           <Label htmlFor="duration">Duration</Label>
           <div className="flex items-center gap-2 flex-wrap">
-            {durationOptions.map((option) => (
+            {DURATION_OPTIONS.map((option) => (
               <div
                 key={option.label}
                 className={cn(
-                  "bg-input/20 border rounded-lg px-4 py-1 hover:bg-input/30 hover:border-secondary transition-colors cursor-pointer",
+                  "bg-input/20 border rounded-lg px-4 py-1 hover:bg-input/30 hover:border-primary transition-colors cursor-pointer",
                   {
-                    "border-secondary bg-input/30": betDuration === option.value,
+                    "border-primary bg-input/30": betDuration === option.value,
                   }
                 )}
                 onClick={() => setBetDuration(option.value)}
@@ -83,11 +84,23 @@ const PlaceBet = () => {
             placeholder="0.00"
             value={betAmount}
             onChange={(e) => setBetAmount(e.target.value)}
+            max={1000}
+            min={2}
           />
-          <p className="text-right text-xs">
-            Your balance:{" "}
-            {balance?.formatted ? formatCurrency(balance.formatted) : "-"}
-          </p>
+          <div className="grid grid-cols-2 gap-6">
+            <p className="text-xs text-red-500">
+              {betAmount && parseFloat(betAmount) > 1000
+                ? "Maximum bet amount is 1000"
+                : betAmount && parseFloat(betAmount) < 2
+                ? "Minimum bet amount is 2"
+                : ""}
+            </p>
+
+            <p className="text-right text-xs">
+              Your balance:{" "}
+              {balance?.formatted ? formatCurrency(balance.formatted) : "-"}
+            </p>
+          </div>
         </div>
 
         <div className="rounded-lg border p-4 space-y-2">
@@ -103,6 +116,12 @@ const PlaceBet = () => {
             <span className="font-medium">1.75x</span>
           </div>
         </div>
+        <DialogConfirmationBet
+          betDirection={betDirection}
+          betAmount={betAmount}
+          betDuration={betDuration}
+          resetForm={resetForm}
+        />
       </div>
     </WalletOverlay>
   );

@@ -8,7 +8,7 @@ Pyth = { git = "https://github.com/pyth-network/pyth-crosschain.git", subdir = "
 mock-usdc = { local = "../mock-usdc" }
 
 [addresses]
-flashbet = "0xb2f01c24171f7dc1b138b4e020aa9f29f2811b99aba5b833fb9c75061da1c795"
+flashbet = "_"
 mock_usdc="0x4bb400aa241f0b7a0fb9ed4327b063ee2583c1e8dc810083f45cc08c378eb091"
 pyth = "0x7e783b349d3e89cf5931af376ebeadbfab855b3fa239b7ada8f5a92fbea6b387"
 deployer = "0xb31e712b26fd295357355f6845e77c888298636609e93bc9b05f0f604049f434"

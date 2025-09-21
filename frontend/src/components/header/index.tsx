@@ -12,7 +12,7 @@ const Header = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ZapIcon className="h-6 w-6" />
-            <div className="text-xl font-bold">FlashBet</div>
+            <div className="text-xl font-bold hidden md:block">FlashBet</div>
           </div>
           <div className="flex items-center gap-1">
             <FaucetButton />

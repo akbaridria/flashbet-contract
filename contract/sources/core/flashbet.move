@@ -7,10 +7,9 @@ module flashbet::flashbet_core {
     use flashbet::liquidity_manager;
     use flashbet::errors::get_error_code;
     use flashbet::events;
-    use flashbet::price_feed;
     use flashbet::vault;
     use flashbet::reward_distributor::ProviderBalance;
-    use flashbet::mock_price_feed;
+    use flashbet::price_feed::{get_price, init_price_feed};
 
     use mock_usdc::usdc;
 
@@ -29,8 +28,8 @@ module flashbet::flashbet_core {
     fun init_module(account: &signer) {
         // currently we are only supporting BTC/USD price feed
         let btc_price_identifier =
-            x"e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43";
-        price_feed::init_price_feed(account, btc_price_identifier);
+            x"f9c0172ba10dfa4d19088d94f5bf61d3b54d5bd7483a322a982e1373ee8ea31b";
+        init_price_feed(account, btc_price_identifier);
         bet_manager::init_bet_manager(account);
         liquidity_manager::init_liquidity_manager(account);
         vault::initialize(account);
@@ -88,13 +87,13 @@ module flashbet::flashbet_core {
 
         // update price feed
         // let current_price = price_feed::get_price(user, update_data);
-        let current_price = mock_price_feed::get_price(user, update_data);
+        let current_price = get_price(user, update_data);
 
         // check slippage in entry price
         if (is_long) {
-            assert!(current_price >= slippage_price, get_error_code(13));
-        } else {
             assert!(current_price <= slippage_price, get_error_code(13));
+        } else {
+            assert!(current_price >= slippage_price, get_error_code(13));
         };
 
         // transfer USDC from user to flashbet
@@ -160,7 +159,7 @@ module flashbet::flashbet_core {
 
         // update price feed
         // let current_price = price_feed::get_price(user, update_data);
-        let current_price = mock_price_feed::get_price(user, update_data);
+        let current_price = get_price(user, update_data);
 
         let (won, payout, early_resolve) =
             bet_manager::resolve_bet(bet_id, current_price, user_address);

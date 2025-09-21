@@ -17,7 +17,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@radix-ui/react-collapsible";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight, ChevronDown, Wallet2Icon } from "lucide-react";
 import { useState } from "react";
 import renderEducationScreen from "./render-education-screen";
 import { AptosConnectWalletRow, WalletRow } from "./wallet-row";
@@ -35,7 +35,9 @@ const WalletSelector = () => {
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
-        <Button>Connect a Wallet</Button>
+        <Button>
+          <Wallet2Icon /><div className="hidden md:block">Connect Wallet</div>
+        </Button>
       </DialogTrigger>
       <DialogContent className="max-h-screen overflow-auto">
         <AboutAptosConnect renderEducationScreen={renderEducationScreen}>

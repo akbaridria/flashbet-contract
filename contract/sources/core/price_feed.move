@@ -16,6 +16,12 @@ module flashbet::price_feed {
         move_to(account, PriceFeed { price_feed_id });
     }
 
+    #[view]
+    public(package) fun get_price_feed_id(): vector<u8> acquires PriceFeed {
+        let price_feed = borrow_global<PriceFeed>(@flashbet);
+        price_feed.price_feed_id
+    }
+
     public(package) fun get_price(
         user: &signer, pyth_price_update: vector<vector<u8>>
     ): u64 acquires PriceFeed {
