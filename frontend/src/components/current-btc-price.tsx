@@ -15,9 +15,9 @@ const CurrentBtcPrice = () => {
     setIsLoading(true);
     try {
       const data = await getBtcPrice();
-      const rawPrice = data?.parsed?.[0]?.price?.price;
+      const rawPrice = data?.price;
       const actualPrice =
-        Number(rawPrice) * Math.pow(10, data?.parsed?.[0]?.price?.expo || 0);
+        Number(rawPrice) * Math.pow(10, data?.expo || 0);
       const formattedPrice = formatCurrency(actualPrice);
       setPrice(formattedPrice || null);
       setLastFetch(Date.now());

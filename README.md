@@ -1,31 +1,49 @@
-# Only Contract Template
+# FlashBet Protocol
 
-This template provides a starting point for a dapp with all necessary infrastructure and implements a simple on-chain message board functionality.
+**FlashBet** is a fully decentralized, non-custodial prediction market protocol built on Aptos. It is open to anyone to be a trader, liquidity provider, or developer, with robust mechanisms for liquidity safety, fair payouts, and gas-efficient reward distribution. FlashBet uses the Pyth Network as its oracle provider for secure and reliable price feeds.
 
-## Read the Boilerplate Template Documentation
 
-To get started with the Boilerplate template and learn more about its features and usage, visit [Boilerplate Template Documentation](https://learn.aptoslabs.com/en/dapp-templates/boilerplate-template)
+## Features
 
-## The Contract Template Provides:
+1. **Locked Liquidity for Guaranteed Payouts**:
+Liquidity is locked for each bet, so winning traders are always paid out.
 
-- **File Structure** - A pre-made dapp file structure, including the `contract` folder.
-- **Dapp Infrastructure** - All dependencies needed to build on the Aptos network.
-- **Message Board Functionality** - A pre-made `message` component for sending and reading messages on-chain.
+2. **Liquidity Protection & Utilization Guard**:
+   When the protocol's liquidity utilization rate exceeds 80%, trading is automatically suspended until enough liquidity is released, protecting everyone involved.
 
-## What Tools Does the Template Use?
+3. **Open Community Participation**:
+    - **Traders:** Make predictions to profit.
+    - **Liquidity Providers:** Provide liquidity to earn a share of protocol profits.
+    - **Developers:** Create scripts to resolve bets and earn a 1% resolver fee of each bet value.
 
-- Aptos TS SDK
-- Node-based Move commands
+4. **Efficient Pull-Based Liquidity Mechanism**:
+When the trader loses, their funds are distributed to liquidity providers. Instead of a gas-wasting push model, FlashBet uses a pull-based Batog algorithm (you can read more about it [here](https://batog.info/papers/scalable-reward-distribution.pdf)) that allows providers to claim rewards efficiently.
 
-## Available Move Commands
+5. **Fully Decentralized**:
+   Complete core logic on-chain, without any centralized control or custody. Built on Aptos and powered by Pyth Network oracles.
 
-This tool leverages the [aptos-cli npm package](https://github.com/aptos-labs/aptos-cli), allowing us to run Aptos CLI in a Node environment.
 
-Some commands are pre-built into the template and can be run as npm scripts, such as:
+## Actors & Flow
 
-- `npm run move:publish` - Command to publish Move contracts
-- `npm run move:test` - Command to run Move unit tests
-- `npm run move:compile` - Command to compile Move contracts
-- `npm run move:upgrade` - Command to upgrade Move contracts
+```mermaid
+sequenceDiagram
+    participant Trader
+    participant LiquidityProvider
+    participant Developer
+    participant FlashBet
+    participant PythNetwork
 
-To see all available CLI commands, you can run `npx aptos` and view the list of all available commands.
+
+    Trader->>FlashBet: Place Bet
+    FlashBet->>PythNetwork: Request Price Feed
+    PythNetwork-->>FlashBet: Return Price Data
+
+    LiquidityProvider->>FlashBet: Add/Remove Liquidity
+
+    Developer->>FlashBet: Resolve Bet
+    FlashBet->>PythNetwork: Request Price Feed
+    PythNetwork-->>FlashBet: Return Price Data
+    FlashBet-->>Trader: Payout (if win)
+    FlashBet-->>Developer: Resolver Fee
+    FlashBet-->>LiquidityProvider: Distribute PnL (if trader loses)
+```

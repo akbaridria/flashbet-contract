@@ -1,6 +1,5 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { queryClient } from "@/lib/query/client";
 import { queryKeys } from "@/lib/query/keys";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { FLASHBET_ABI } from "@/abis/flashbet";
@@ -14,6 +13,7 @@ export function useAddLiquidity({
   amount: string;
   address: string;
 }) {
+  const queryClient = useQueryClient();
   const { signAndSubmitTransaction } = useWallet();
   const handleAddingLiquidity = useCallback(async () => {
     const response = await signAndSubmitTransaction({
@@ -25,16 +25,28 @@ export function useAddLiquidity({
       },
     });
 
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
     const committedTxn = await aptosClient().waitForTransaction({
       transactionHash: response.hash,
+      options: {
+        waitForIndexer: true,
+        checkSuccess: true,
+      }
     });
 
     if (committedTxn.success) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.balance(address) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.providerBalance(address),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.marketState() });
       return committedTxn;
     } else {
       throw new Error("Transaction failed");
     }
-  }, [address, amount, signAndSubmitTransaction]);
+  }, [address, amount, queryClient, signAndSubmitTransaction]);
+
   return useMutation({
     mutationFn: handleAddingLiquidity,
     onError: (error) => {
@@ -42,11 +54,6 @@ export function useAddLiquidity({
     },
     onSuccess: () => {
       toast.success("Liquidity added successfully");
-      queryClient.invalidateQueries({ queryKey: queryKeys.balance(address) });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.providerBalance(address),
-      });
-      queryClient.invalidateQueries({ queryKey: queryKeys.marketState() });
     },
   });
 }

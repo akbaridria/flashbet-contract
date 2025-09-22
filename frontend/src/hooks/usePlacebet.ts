@@ -1,12 +1,11 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { queryClient } from "@/lib/query/client";
 import { queryKeys } from "@/lib/query/keys";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { FLASHBET_ABI } from "@/abis/flashbet";
 import { aptosClient } from "@/lib/aptos-client";
 import { useCallback } from "react";
-import { getPriceUpdateData } from "@/lib/utils";
+import { getPriceUpdateData, pushBetToQueue } from "@/lib/utils";
 
 interface PlaceBetParams {
   isLong: boolean;
@@ -24,6 +23,7 @@ export function usePlacebet({
   slippagePrice,
 }: PlaceBetParams) {
   const { signAndSubmitTransaction } = useWallet();
+  const queryClient = useQueryClient();
 
   const handlePlaceBet = useCallback(async () => {
     const priceUpdates = await getPriceUpdateData();
@@ -40,17 +40,46 @@ export function usePlacebet({
         typeArguments: [],
       },
     });
-
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     const committedTxn = await aptosClient().waitForTransaction({
       transactionHash: response.hash,
+      options: {
+        waitForIndexer: true,
+        checkSuccess: true,
+      },
     });
 
     if (committedTxn.success) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.balance(address) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.marketState() });
+      if ("events" in committedTxn) {
+        committedTxn.events.forEach((event) => {
+          if (
+            event.type === `${FLASHBET_ABI.address}::events::PlacedBetEvent`
+          ) {
+            const betId = event.data.bet_id;
+            const bet_expirytime = event.data.expiry_time;
+            pushBetToQueue({
+              betId: Number(betId),
+              betDuration: Number(bet_expirytime),
+            });
+          }
+        });
+      }
       return committedTxn;
     } else {
       throw new Error("Transaction failed");
     }
-  }, [amount, duration, isLong, signAndSubmitTransaction, slippagePrice]);
+  }, [
+    address,
+    amount,
+    duration,
+    isLong,
+    queryClient,
+    signAndSubmitTransaction,
+    slippagePrice,
+  ]);
+
   return useMutation({
     mutationFn: handlePlaceBet,
     onError: (error) => {
@@ -58,8 +87,6 @@ export function usePlacebet({
     },
     onSuccess: () => {
       toast.success("Bet placed successfully");
-      queryClient.invalidateQueries({ queryKey: queryKeys.balance(address) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.marketState() });
     },
   });
 }

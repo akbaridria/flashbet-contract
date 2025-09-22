@@ -33,7 +33,7 @@ const App = () => {
           <div className="absolute inset-0 border border-secondary  rounded-lg pointer-events-none"></div>
           <TradingViewWidget />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <PlaceBet />
           <LiquidityManagement />
           <RecentActivity />

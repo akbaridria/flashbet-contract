@@ -1,0 +1,1 @@
+## Example of script to resolve bet

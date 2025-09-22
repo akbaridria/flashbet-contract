@@ -1,6 +1,5 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { queryClient } from "@/lib/query/client";
 import { queryKeys } from "@/lib/query/keys";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { FLASHBET_ABI } from "@/abis/flashbet";
@@ -9,6 +8,7 @@ import { useCallback } from "react";
 
 export function useFaucet({ address }: { address: string }) {
   const { signAndSubmitTransaction } = useWallet();
+  const queryClient = useQueryClient();
   const handleAddingLiquidity = useCallback(async () => {
     const response = await signAndSubmitTransaction({
       sender: address,
@@ -19,16 +19,20 @@ export function useFaucet({ address }: { address: string }) {
       },
     });
 
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
     const committedTxn = await aptosClient().waitForTransaction({
       transactionHash: response.hash,
     });
 
     if (committedTxn.success) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.balance(address) });
       return committedTxn;
     } else {
       throw new Error("Transaction failed");
     }
-  }, [address, signAndSubmitTransaction]);
+  }, [address, queryClient, signAndSubmitTransaction]);
+
   return useMutation({
     mutationFn: handleAddingLiquidity,
     onError: (error) => {
@@ -36,7 +40,6 @@ export function useFaucet({ address }: { address: string }) {
     },
     onSuccess: () => {
       toast.success("Reveived 100 USDC successfully");
-      queryClient.invalidateQueries({ queryKey: queryKeys.balance(address) });
     },
   });
 }

@@ -62,7 +62,7 @@ const DialogConfirmationBet: React.FC<DialogConfirmationBetProps> = ({
     if (isOpen) {
       (async () => {
         const res = await getBtcPrice();
-        const rawPrice = res?.parsed?.[0]?.price?.price || null;
+        const rawPrice = res?.price || null;
         setBtcPrice(rawPrice);
       })();
     }
