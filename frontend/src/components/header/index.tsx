@@ -20,7 +20,7 @@ const Header = () => {
             <TooltipButton
               content="Learn more about FlashBet"
               trigger={
-                <a href="#" target="_blank" rel="noopener noreferrer">
+                <a href="https://github.com/akbaridria/flashbet-contract/blob/main/README.md" target="_blank" rel="noopener noreferrer">
                   <Button variant="ghost" size="icon">
                     <InfoIcon className="h-4 w-4" />
                   </Button>
@@ -31,7 +31,7 @@ const Header = () => {
             <TooltipButton
               content="View on GitHub"
               trigger={
-                <a href="#" target="_blank" rel="noopener noreferrer">
+                <a href="https://github.com/akbaridria/flashbet-contract" target="_blank" rel="noopener noreferrer">
                   <Button variant="ghost" size="icon">
                     <GithubIcon className="h-4 w-4" />
                   </Button>
